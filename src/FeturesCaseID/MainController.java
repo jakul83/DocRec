@@ -351,12 +351,12 @@ public class MainController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
             	try {
-					Desktop.getDesktop().open(new File("D:\\DocRecBeta\\"+selectedFile));
+					Desktop.getDesktop().open(new File("D:\\DocRecBeta\\"+selectedFile+System.currentTimeMillis()));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-                System.out.println("klikniecie");
+  //              System.out.println("klikniecie");
             }
         });
         Label label = new Label("Recognizing completed. Open link below to see the results");
