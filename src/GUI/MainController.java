@@ -1,4 +1,4 @@
-package FeturesCaseID;
+package GUI;
 
 import DocumentRec.DBconnection;
 import DocumentRec.TIFFsplit;

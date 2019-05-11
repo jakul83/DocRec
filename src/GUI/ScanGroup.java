@@ -1,4 +1,4 @@
-package FeturesCaseID;
+package GUI;
 
 import java.awt.image.BufferedImage;
 
