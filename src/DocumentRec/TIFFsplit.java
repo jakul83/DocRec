@@ -3,17 +3,26 @@ package DocumentRec;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -51,7 +60,8 @@ public class TIFFsplit {
 	static List<Pages> Documents = new ArrayList<>();
 
 	static List<RecognizedDocument> RecognizedDocuments = new ArrayList<RecognizedDocument>();
-
+	
+	static String skGr;
 	static int dateSet = 0;
 	static String recognizedDate;
 	static String recognizedDate2;
@@ -416,6 +426,141 @@ public class TIFFsplit {
 		r.removeAll(r);
 
 	}
+	
+	public static void returnDataFromRecognizedDocumentsList(List<RecognizedDocument> r) {
+		int v = 0;
+		for (RecognizedDocument d : r) {
+
+			{
+
+				System.out.println(v + ". " + d.getId() + "  |  " + d.getFilePath() + "  |  " + d.getIdPozyczki()
+						+ "  |  " + d.getIdProcesuKomornik() + "  |  " + d.getPersonalizacja() + "  |  " + d.getSygKM()
+						+ "  |  " + d.getSygSad() + "  |  " + d.getResult() + "  |  " + d.getIdWekaModel() + "  |  "
+						+ d.getTyp() + "  |  " + d.getPodtyp() + "  |  " + d.getOpis1()+ "  |  " + d.getImage()+ "  |  " + d.getSizeImage()+ "  |  " + d.getNumbPages()+ "  |  " + d.getPageInGroup()+ "  |  " + d.getDb()+ "  |  " + d.getSpersonalizowac()
+						);
+			}
+			v = v + 1;
+		}
+
+	}
+	
+	public static void createNewGroupScan(List<RecognizedDocument> r, String p, String file) throws IOException {
+		
+		ArrayList<BufferedImage> ScanGroup = new ArrayList<BufferedImage>();
+		int v=0;
+		int nP =0;
+		String ipn="";
+		String ipo="";
+		String iph="";
+		for (RecognizedDocument d: r) {
+			if (d.getResult()>2) {
+				
+				iph=iph+d.getPageInGroup();
+			}
+//			if (d.getResult()<=2) {
+//				
+//				ipn=ipn+d.getPageInGroup();
+//			}
+			ipn =iph;
+			ipo = ipo+d.getPageInGroup();
+			v=v+d.getSizeImage();
+			nP=nP+d.getNumbPages();
+			ByteArrayInputStream bis = new ByteArrayInputStream(d.getImage());
+
+			ImageInputStream is = ImageIO.createImageInputStream(bis);
+		
+			Iterator<ImageReader> iterator = ImageIO.getImageReaders(is);
+			
+			ImageReader reader = (ImageReader) iterator.next();
+			reader.setInput(is);
+			int nbPages = reader.getNumImages(true);
+//			System.out.println("ile stron: " + nbPages);
+			
+			for (int i = 0; i < nbPages; i++) {
+
+				ScanGroup.add(reader.read(i));
+			}
+			
+		}
+
+
+		prepareScanGroupForImport(ScanGroup, nP, v, ipo, iph,ipn, file);
+}
+	
+	
+	private static void prepareScanGroupForImport(ArrayList<BufferedImage> bufferedImageList, int nP, int v, String ipo, String iph, String ipn, String file) throws IOException {
+
+		TIFFEncodeParam params = new TIFFEncodeParam();
+		params.setCompression(TIFFEncodeParam.COMPRESSION_GROUP4);
+		TIFFField[] extras = new TIFFField[2];
+		extras[0] = new TIFFField(282, TIFFField.TIFF_RATIONAL, 1,
+				(Object) new long[][] { { (long) 300, (long) 1 }, { (long) 0, (long) 0 } });
+
+		extras[1] = new TIFFField(283, TIFFField.TIFF_RATIONAL, 1,
+				(Object) new long[][] { { (long) 300, (long) 1 }, { (long) 0, (long) 0 } });
+		params.setExtraFields(extras);
+		
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ImageEncoder encoder = ImageCodec.createImageEncoder("tiff", out, params);
+		
+
+		params.setExtraImages(bufferedImageList.listIterator(1));
+
+		encoder.encode(bufferedImageList.get(0));
+		byte[] dest = out.toByteArray();
+		ByteArrayInputStream is = new ByteArrayInputStream(dest);
+		System.out.println("Done.");
+		insertScanGroupIntoDB(is, nP, dest.length, ipo, iph, ipn, file);
+	}
+	
+	public static String insertScanGroupIntoDB(InputStream imageByte, int nbPages, int length, String ipo, String iph, String ipn, String file) {
+
+       
+
+		Date date = new Date();
+		Object paramDate = new java.sql.Timestamp(date.getTime());
+        String login = "DocRecognition";
+        String nazwa = "DocRec_"+file;
+        String db = "wierzytelnosci";
+        
+        		
+        
+        try (Connection con = DBconnection.connectionDB(db);) {
+        	           	         	           	
+        	   String SQL = "INSERT INTO [dbo].[sk_grupy] ([sk_typ],[sk_status],[sk_priorytet],[data_przyj],[data_skanu],[nazwa],[login],[image],[imagesize],[imagetyp],[imagepages],[ipn],[ipo],[dzial_docelowy],[przekazano]) VALUES ('2','1','1',?,?,'"+nazwa+"','"+login+"',?,'"+length+"','6','"+nbPages+"','"+ipn+"','"+ipo+"', 'DWD','1')";
+        	  // System.out.println(SQL);
+        	   PreparedStatement stmt = con.prepareStatement(SQL);
+        	   stmt.setObject(1, paramDate);
+        	   stmt.setObject(2, paramDate);
+        	   stmt.setBinaryStream(3, imageByte);
+               stmt.executeUpdate();                             
+               con.close();                
+        }
+    
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        try(Statement stmt2 = DBconnection.connectionDB(db).createStatement();){
+     	   String SQL2 = "SELECT TOP 1 [sk_gr] FROM [dbo].[sk_grupy] WHERE nazwa ='"+nazwa+"' ORDER BY  sk_gr DESC";
+     	  // System.out.println(SQL);
+            ResultSet rs = stmt2.executeQuery(SQL2);
+
+            
+            while (rs.next()) {
+
+            		 skGr  = rs.getString("sk_gr");
+                }
+            
+            System.out.println("skGr: " + skGr);
+        	
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return skGr;
+    }
 
 	public static void start(ArrayList<BufferedImage> scanGroupList, String file, File selectedFile)
 			throws IOException, InterruptedException {
