@@ -1,5 +1,4 @@
 
-
 package DocumentRec;
 
 import java.awt.image.BufferedImage;
@@ -50,14 +49,12 @@ public class TIFFsplit {
 	static ArrayList<Mat> Images = new ArrayList<Mat>();
 
 	static List<Pages> Documents = new ArrayList<>();
-	
+
 	static List<RecognizedDocument> RecognizedDocuments = new ArrayList<RecognizedDocument>();
-	
-	static int dateSet=0;
+
+	static int dateSet = 0;
 	static String recognizedDate;
 	static String recognizedDate2;
-
-
 
 	public static void clearImagesArrayList(ArrayList<Mat> r) {
 
@@ -78,18 +75,18 @@ public class TIFFsplit {
 			TIFFEncodeParam params = new TIFFEncodeParam();
 			params.setCompression(TIFFEncodeParam.COMPRESSION_GROUP4);
 
-			 TIFFField[] extras = new TIFFField[2];
-			    extras[0] = new TIFFField(282, TIFFField.TIFF_RATIONAL, 1, (Object) new     
-			    		long[][] { { (long) 300, (long) 1 },{ (long) 0, (long) 0 } });
+			TIFFField[] extras = new TIFFField[2];
+			extras[0] = new TIFFField(282, TIFFField.TIFF_RATIONAL, 1,
+					(Object) new long[][] { { (long) 300, (long) 1 }, { (long) 0, (long) 0 } });
 
-			    extras[1] = new TIFFField(283, TIFFField.TIFF_RATIONAL, 1, (Object) new     
-			    long[][] { { (long) 300, (long) 1 },{ (long) 0, (long) 0 } });
-			    params.setExtraFields(extras);
-			    
+			extras[1] = new TIFFField(283, TIFFField.TIFF_RATIONAL, 1,
+					(Object) new long[][] { { (long) 300, (long) 1 }, { (long) 0, (long) 0 } });
+			params.setExtraFields(extras);
+
 			if (Documents.get(i).getPageStatus(i) == 1) {
-				String documentPath = ocrFolder + "\\"+"dok"+i + ".tiff";
-				String txtFilePath =  documentPath.replace(ocrFolder, ocrFolder+"\\przetworzone");
-				txtFilePath= txtFilePath.replace(txtFilePath, txtFilePath+".txt");
+				String documentPath = ocrFolder + "\\" + "dok" + i + ".tiff";
+				String txtFilePath = documentPath.replace(ocrFolder, ocrFolder + "\\przetworzone");
+				txtFilePath = txtFilePath.replace(txtFilePath, txtFilePath + ".txt");
 				OutputStream out = new FileOutputStream(documentPath);
 				ImageEncoder encoder = ImageCodec.createImageEncoder("tiff", out, params);
 				// params.setExtraImages(Documents.listIterator(1));
@@ -114,17 +111,16 @@ public class TIFFsplit {
 				document.setTxtFilePath(txtFilePath);
 				RecognizedDocuments.add(document);
 				imageToByte(document);
-				
 
 			}
 
 		}
 
 	}
-	
+
 	public static List<RecognizedDocument> imageToByte(RecognizedDocument document) throws IOException {
 		String fileName = document.getFilePath();
-		System.out.println("Sciezka: " +fileName);
+		System.out.println("Sciezka: " + fileName);
 		ImageInputStream is = ImageIO.createImageInputStream(new File(fileName));
 
 		Iterator<ImageReader> iterator = ImageIO.getImageReaders(is);
@@ -135,17 +131,16 @@ public class TIFFsplit {
 
 //		System.out.println("image: "+ nbPages);
 
-	
 		Path path = Paths.get(fileName);
-	
+
 		byte[] fileContent = Files.readAllBytes(path);
-		
+
 		document.setImage(fileContent);
 		document.setNumbPages(nbPages);
 		document.setSizeImage(fileContent.length);
-		
+
 		return RecognizedDocuments;
-		
+
 	}
 
 	private static void saveSeperateImagePage(ArrayList<BufferedImage> bufferedImageList, String pagesFolder)
@@ -153,29 +148,28 @@ public class TIFFsplit {
 
 		for (int i = 0; i < bufferedImageList.size(); i++) {
 			BufferedImage page = bufferedImageList.get(i);
-			String pageNumber = i+"strona" + i;
-			String filePath = pagesFolder + "\\0"+pageNumber + ".tiff";
-			
-			
+			String pageNumber = i + "strona" + i;
+			String filePath = pagesFolder + "\\0" + pageNumber + ".tiff";
+
 			TIFFEncodeParam params = new TIFFEncodeParam();
 			params.setCompression(TIFFEncodeParam.COMPRESSION_GROUP4);
-			 TIFFField[] extras = new TIFFField[2];
-			    extras[0] = new TIFFField(282, TIFFField.TIFF_RATIONAL, 1, (Object) new     
-			    		long[][] { { (long) 300, (long) 1 },{ (long) 0, (long) 0 } });
+			TIFFField[] extras = new TIFFField[2];
+			extras[0] = new TIFFField(282, TIFFField.TIFF_RATIONAL, 1,
+					(Object) new long[][] { { (long) 300, (long) 1 }, { (long) 0, (long) 0 } });
 
-			    extras[1] = new TIFFField(283, TIFFField.TIFF_RATIONAL, 1, (Object) new     
-			    long[][] { { (long) 300, (long) 1 },{ (long) 0, (long) 0 } });
-			    params.setExtraFields(extras);
-			    
-			    OutputStream out = new FileOutputStream(filePath);
-				ImageEncoder encoder = ImageCodec.createImageEncoder("tiff", out, params);
-				encoder.encode(page);
-				out.close();
-				
+			extras[1] = new TIFFField(283, TIFFField.TIFF_RATIONAL, 1,
+					(Object) new long[][] { { (long) 300, (long) 1 }, { (long) 0, (long) 0 } });
+			params.setExtraFields(extras);
+
+			OutputStream out = new FileOutputStream(filePath);
+			ImageEncoder encoder = ImageCodec.createImageEncoder("tiff", out, params);
+			encoder.encode(page);
+			out.close();
+
 //			ImageIO.write(page, "TIFF", new File(filePath));
 //
 //			ImageIO.write(page, "TIFF", new File(filePath));
-			
+
 			matchingMethod(filePath, pagesFolder, page, pageNumber);
 
 		}
@@ -213,7 +207,6 @@ public class TIFFsplit {
 
 			// System.out.println("dst" + i + ": " + dst);
 
-			
 			Images.add(dst);
 			Imgcodecs.imwrite("D:\\pat\\pat" + i + ".tiff", dst);
 			r = r + -8;
@@ -229,19 +222,19 @@ public class TIFFsplit {
 			Mat result = new Mat();
 			Mat img_display = new Mat();
 			Mat img2 = Imgcodecs.imread(filePath, Imgcodecs.IMREAD_COLOR);
-			System.out.println("file: " + filePath + " mat: "+ img2 + "width: "+img2.width()+ " heigth: " +img2.height());
+			System.out.println(
+					"file: " + filePath + " mat: " + img2 + "width: " + img2.width() + " heigth: " + img2.height());
 			System.out.println(img2.empty());
 			Rect rectCrop = new Rect();
 			if (img2.width() / 2 < img2.height()) {
 				rectCrop = new Rect(img2.width() / 2, 0, img2.width() / 2, img2.width() / 2);
 				System.out.println("RectCrop1");
-				
+
 			} else {
 				rectCrop = new Rect(0, 0, img2.width(), img2.height());
 				System.out.println("RectCrop2");
 			}
-			
-		
+
 			Mat img = new Mat(img2, rectCrop);
 //			Rect rectCropForCaseId = new Rect(0, 0, img2.width(), img2.width() / 3);
 //			Mat imgForCaseId = new Mat(img2, rectCropForCaseId);
@@ -256,8 +249,6 @@ public class TIFFsplit {
 				int result_cols = img.cols() - templ.cols() + 1;
 				int result_rows = img.rows() - templ.rows() + 1;
 				result.create(result_rows, result_cols, CvType.CV_32FC1);
-				
-				
 
 				Imgproc.matchTemplate(img, templ, result, Imgproc.TM_CCOEFF_NORMED);
 
@@ -279,34 +270,33 @@ public class TIFFsplit {
 					Pages newFirstPage = new Pages(filePath, 1, page, mmr.maxVal);
 					Documents.add(newFirstPage);
 //					Imgcodecs.imwrite(pagesFolder + "\\ocrCaseId\\" + pageNumber + ".tiff", imgForCaseId);
-					if (dateSet <2) {
-						File r= new File(pagesFolder + "\\recognizedDate\\");
+					if (dateSet < 2) {
+						File r = new File(pagesFolder + "\\recognizedDate\\");
 						r.mkdir();
-						int x = (int) (matchLoc.x-150 );
-						int y = (int) (matchLoc.y-15);
+						int x = (int) (matchLoc.x - 150);
+						int y = (int) (matchLoc.y - 15);
 						Rect dateCrop = new Rect(x, y, 260, 100);
-						try {Mat dateMate = new Mat(img, dateCrop);
-						
-						
-						Size sz = new Size(dateMate.width()*3,dateMate.height());
-						Imgproc.resize( dateMate,dateMate, sz );
-						Imgproc.cvtColor(dateMate, dateMate, Imgproc.COLOR_RGB2GRAY);
-						Imgproc.GaussianBlur(dateMate, dateMate, new Size(3,3),1);
-						Imgproc.threshold(dateMate, dateMate,225, 255,Imgproc.THRESH_BINARY);
-						Imgcodecs.imwrite(pagesFolder + "\\recognizedDate\\recognizedDate.tiff", dateMate);
-						Ocr.OCR(r.getPath());
-						
-						
+						try {
+							Mat dateMate = new Mat(img, dateCrop);
 
-						while (Ocr.z != Ocr.i) {
+							Size sz = new Size(dateMate.width() * 3, dateMate.height());
+							Imgproc.resize(dateMate, dateMate, sz);
+							Imgproc.cvtColor(dateMate, dateMate, Imgproc.COLOR_RGB2GRAY);
+							Imgproc.GaussianBlur(dateMate, dateMate, new Size(3, 3), 1);
+							Imgproc.threshold(dateMate, dateMate, 225, 255, Imgproc.THRESH_BINARY);
+							Imgcodecs.imwrite(pagesFolder + "\\recognizedDate\\recognizedDate.tiff", dateMate);
+							Ocr.OCR(r.getPath());
 
-							Thread.sleep(1000);
+							while (Ocr.z != Ocr.i) {
+
+								Thread.sleep(1000);
 //							// System.out.println("=== doOCR(ocrFolder) running ===")
-							;
+								;
+							}
+							setDocumentsDate();
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
-						setDocumentsDate();
-						}
-						catch(Exception e) {e.printStackTrace();}
 					}
 					break;
 				}
@@ -325,78 +315,80 @@ public class TIFFsplit {
 
 		catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("!!!!!!Blad przy matchowaniu pierwszej strony (pattern match), sprawdz rozdizelczosc lub rozmiar obrazu wejsiowego");
+			System.out.println(
+					"!!!!!!Blad przy matchowaniu pierwszej strony (pattern match), sprawdz rozdizelczosc lub rozmiar obrazu wejsiowego");
 			System.exit(-1);
 		}
 
 		// showTemplateMatchingResult();
-		
-		
-
 
 	}
-	
+
 	public static void setDocumentsDate() {
-	
-	if (dateSet==1) {	
-		
-		
-		recognizedDate2 = recognizedDate2.replaceAll("\\D", "");
-		
-		if (recognizedDate2.length()==8) {
+
+		if (dateSet == 1) {
+
+			recognizedDate2 = recognizedDate2.replaceAll("\\D", "");
+
+			if (recognizedDate2.length() == 8) {
 //			System.out.println("Data z pieczątki przed substring: "+recognizedDate + " dlugosc: "  +recognizedDate.length()+ "poz 0: " + recognizedDate.charAt(0)+ "poz 0: " + recognizedDate.charAt(7));
-			recognizedDate2 = recognizedDate2.substring(4, 8)+ "-"+recognizedDate2.substring(2, 4)+ "-"+recognizedDate2.substring(0, 2);
+				recognizedDate2 = recognizedDate2.substring(4, 8) + "-" + recognizedDate2.substring(2, 4) + "-"
+						+ recognizedDate2.substring(0, 2);
 //			System.out.println("Data z pieczątki przed match: "+recognizedDate);
-			Pattern r = Pattern.compile("20[123]{1}[1-9]{1}-[01]{1}[1-9]{1}-[0123]{1}[0-9]{1}");
-			Matcher m = r.matcher(recognizedDate2);
-			if (m.find() & recognizedDate.equals(recognizedDate2)) {
-				String s = m.group(0).toString();
-				
-				dateSet = 2;
-				System.out.println("Data z pieczątki: "+s + " DateSet: "+dateSet);	
-				System.out.println("recognizedDate: "+recognizedDate);
-				System.out.println("recognizedDate2: "+recognizedDate2);
+				Pattern r = Pattern.compile("20[123]{1}[1-9]{1}-[01]{1}[1-9]{1}-[0123]{1}[0-9]{1}");
+				Matcher m = r.matcher(recognizedDate2);
+				if (m.find() & recognizedDate.equals(recognizedDate2)) {
+					String s = m.group(0).toString();
+
+					dateSet = 2;
+					System.out.println("Data z pieczątki: " + s + " DateSet: " + dateSet);
+					System.out.println("recognizedDate: " + recognizedDate);
+					System.out.println("recognizedDate2: " + recognizedDate2);
+				}
+
+				else {
+					System.out.println("brak zgodnosci recognizedDate: " + recognizedDate);
+					System.out.println("brak zgodnosci recognizedDate2: " + recognizedDate2);
+					recognizedDate = recognizedDate2;
+					recognizedDate2 = "";
+
+				}
+
 			}
-			
-			
+
 			else {
-				System.out.println("brak zgodnosci recognizedDate: "+recognizedDate);
-				System.out.println("brak zgodnosci recognizedDate2: "+recognizedDate2);
-				recognizedDate = recognizedDate2;
-				recognizedDate2="";
-				
-				
-				  
+				recognizedDate2 = "";
 			}
-			
 		}
-		
-		else {recognizedDate2="";}
-		}
-	if (dateSet==0) {	
-		
-		recognizedDate = recognizedDate2;	
-		recognizedDate = recognizedDate.replaceAll("\\D", "");
-		
-		if (recognizedDate.length()==8) {
+		if (dateSet == 0) {
+
+			recognizedDate = recognizedDate2;
+			recognizedDate = recognizedDate.replaceAll("\\D", "");
+
+			if (recognizedDate.length() == 8) {
 //			System.out.println("Data z pieczątki przed substring: "+recognizedDate + " dlugosc: "  +recognizedDate.length()+ "poz 0: " + recognizedDate.charAt(0)+ "poz 0: " + recognizedDate.charAt(7));
-			recognizedDate = recognizedDate.substring(4, 8)+ "-"+recognizedDate.substring(2, 4)+ "-"+recognizedDate.substring(0, 2);
+				recognizedDate = recognizedDate.substring(4, 8) + "-" + recognizedDate.substring(2, 4) + "-"
+						+ recognizedDate.substring(0, 2);
 //			System.out.println("Data z pieczątki przed match: "+recognizedDate);
-			Pattern r = Pattern.compile("20[123]{1}[1-9]{1}-[01]{1}[1-9]{1}-[0123]{1}[0-9]{1}");
-			Matcher m = r.matcher(recognizedDate);
-			if (m.find()) {
-				String s = m.group(0).toString();
-				dateSet =1;
-				System.out.println("Data z pieczątki: "+s + " DateSet: "+dateSet);	
-				System.out.println("recognizedDate: "+recognizedDate);
-				System.out.println("recognizedDate2: "+recognizedDate2);	
+				Pattern r = Pattern.compile("20[123]{1}[1-9]{1}-[01]{1}[1-9]{1}-[0123]{1}[0-9]{1}");
+				Matcher m = r.matcher(recognizedDate);
+				if (m.find()) {
+					String s = m.group(0).toString();
+					dateSet = 1;
+					System.out.println("Data z pieczątki: " + s + " DateSet: " + dateSet);
+					System.out.println("recognizedDate: " + recognizedDate);
+					System.out.println("recognizedDate2: " + recognizedDate2);
+				}
+
+				else {
+					recognizedDate = "";
+				}
+
 			}
-			
-			else {recognizedDate="";}
-			
-		}
-		
-		else {recognizedDate="";}
+
+			else {
+				recognizedDate = "";
+			}
 		}
 	}
 
@@ -418,25 +410,24 @@ public class TIFFsplit {
 		bufWriter.close();
 
 	}
-	
+
 	public static void clearRecognizedDocumentsList(List<RecognizedDocument> r) {
 
 		r.removeAll(r);
 
 	}
 
-	public static void start(ArrayList<BufferedImage> scanGroupList, String file, File selectedFile) throws IOException, InterruptedException {
+	public static void start(ArrayList<BufferedImage> scanGroupList, String file, File selectedFile)
+			throws IOException, InterruptedException {
 		System.out.println("=== Program starts now ===");
 
-		// long start = System.currentTimeMillis();
 
-		 // "D:\\grupa\\zajecia07-1=0.TIF";
 		String g = "\\" + file;
 
 		System.out.println(file);
 		File x = new File("D:\\DocRecBeta");
 		x.mkdir();
-		File a = new File(x.toString() + g+System.currentTimeMillis());
+		File a = new File(x.toString() + g);
 		a.mkdir();
 		File d = new File(a + "\\stronyGrupy");
 		d.mkdir();
@@ -448,30 +439,29 @@ public class TIFFsplit {
 //		File c = new File(pagesFolder + "\\ocrCaseId");
 //		c.mkdir();
 //		String ocrForCaseIdFolder = c.toString();
-		// System.out.println(ocrForCaseIdFolder);
+//		System.out.println(ocrForCaseIdFolder);
 
 		// String templatePath = "./pattern/pattern300p.png";
 
 		String templatePath = "./pattern/pattern300p.png";
 		// System.out.println();
-		
-		
-		if (scanGroupList==null) {
-		String groupPath = selectedFile.getPath();
-		System.out.println("=== Reading source group multitiff file starts now ===");
-		ImageInputStream is = ImageIO.createImageInputStream(new File(groupPath));
-		if (is == null || is.length() == 0) {
-		}
-		Iterator<ImageReader> iterator = ImageIO.getImageReaders(is);
-		if (iterator == null || !iterator.hasNext()) {
-			throw new IOException("Image file format not supported by ImageIO: " + groupPath);
-		}
-		ImageReader reader = (ImageReader) iterator.next();
-		reader.setInput(is);
-		int nbPages = reader.getNumImages(true);
-		System.out.println("Number of pages in source file: " + nbPages);
-		System.out.println("=== Reading source group multitiff file ends now ===");
-		scanGroupList = BufferedImageList(is, reader, nbPages);
+
+		if (scanGroupList == null) {
+			String groupPath = selectedFile.getPath();
+			System.out.println("=== Reading source group multitiff file starts now ===");
+			ImageInputStream is = ImageIO.createImageInputStream(new File(groupPath));
+			if (is == null || is.length() == 0) {
+			}
+			Iterator<ImageReader> iterator = ImageIO.getImageReaders(is);
+			if (iterator == null || !iterator.hasNext()) {
+				throw new IOException("Image file format not supported by ImageIO: " + groupPath);
+			}
+			ImageReader reader = (ImageReader) iterator.next();
+			reader.setInput(is);
+			int nbPages = reader.getNumImages(true);
+			System.out.println("Number of pages in source file: " + nbPages);
+			System.out.println("=== Reading source group multitiff file ends now ===");
+			scanGroupList = BufferedImageList(is, reader, nbPages);
 		}
 		System.out.println();
 		System.out.println("=== Recognizing documents starts now ===");
@@ -496,16 +486,16 @@ public class TIFFsplit {
 
 		Path ocrPath = Paths.get(ocrFolder + "\\przetworzone");
 
-//		CaseId.main(CaseIdPath, file, recognizedDate);
+
 		RecognizedDocument.setPagesInGroup(RecognizedDocuments);
 		DocsClassification.main(RecognizedDocuments, ocrPath);
-		
+
 		clearImagesArrayList(Images);
 		clearDocumentsList(Documents);
 		clearRecognizedDocumentsList(RecognizedDocuments);
-		
+
 		dateSet = 0;
-		recognizedDate=null;
+		recognizedDate = null;
 
 		System.out.println("=== Program ends now ===");
 

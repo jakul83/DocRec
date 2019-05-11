@@ -351,7 +351,7 @@ public class MainController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
             	try {
-					Desktop.getDesktop().open(new File("D:\\DocRecBeta\\"+selectedFile+System.currentTimeMillis()));
+					Desktop.getDesktop().open(new File("D:\\DocRecBeta\\"+selectedFile));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
